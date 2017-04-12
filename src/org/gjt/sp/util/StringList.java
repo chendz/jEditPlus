@@ -21,133 +21,111 @@
 
 package org.gjt.sp.util;
 
-//{{{ imports
+
 import java.util.ArrayList;
 import java.util.Collection;
-//}}}
 
-// {{{ StringList class
+
 /**
- * A List&lt;String&gt; with some perl-like convenience functions (split/join primarily),
- * and easy conversion to/from arrays.
  * @since jEdit 4.3pre7
  */
-public class StringList extends ArrayList<String>
-{
-
- 	// {{{ Constructors
- 	public StringList()
-	{
-	}
+public class StringList extends ArrayList<String> {
 
 
-	public StringList(Object[] array)
-	{
-		addAll(array);
-	} // }}}
-
-	// {{{ addAll()
-	public void addAll(Object[] array)
-	{
-		for (Object element : array)
-			add(element.toString());
-	}   // }}}
-
-	// {{{ split()
-	/**
-	 * @param orig the original string
-	 * @param delim a delimiter to use for splitting
-	 * @return a new StringList containing the split strings.
-	 */
-	public static StringList split(String orig, Object delim)
-	{
-		if ((orig == null) || (orig.length() == 0))
-			return new StringList();
-		return new StringList(orig.split(delim.toString()));
-	} // }}}
-
-	// {{{ toString()
-	/**
-	 * Joins each string in the list with a newline.
-	 * @return a joined string representation of this, 
-	 * with the newline (\n) as delimiter. 
-	 */
-	@Override
-	public String toString()
-	{
-		return join("\n");
-	}  // }}}
-
-	// {{{ toArray()
-	/** @return an array of String */
-	@Override
-	public String[] toArray() 
-	{
-		int siz = size();
-		String[] result = new String[siz];
-		System.arraycopy(super.toArray(), 0, result, 0, siz);
-		return result;
-	}
-	// }}}
-
-	// {{{ join() methods
-	/**
-	 * The reverse of split - given a collection, takes each element
-	 * and places it in a string, joined by a delimiter.
-	 */
-	public static String join(Collection<String> c, String delim)
-	{
-		StringList sl = new StringList();
-		for (String s: c)
-			sl.add(s);
-		return sl.join(delim);
-	}
-
-	/**
-	 *
-	 * @param arr array of objects
-	 * @param delim delimiter to separate strings
-	 * @return a single string with each element in arr converted to a string and concatenated,
-	 * separated by delim.
-	 */
-	public static String join(Object[] arr, String delim) 
-	{
-		return new StringList(arr).join(delim);
-	}
+    public StringList() {
+    }
 
 
-	/**
-	 * Non-static version, that joins "this" StringList.
-	 * @param delim the delimiter
-	 * @return a joined string with delim inbetween each element
-	 */
-	public String join(String delim) 
-	{
-		int s = size();
-		if (s < 1)
-			return "";
-		if (s == 1)
-			return get(0);
-		else
-		{
-			StringBuilder retval = new StringBuilder();
-			retval.append(get(0));
-			for (int i = 1; i < s; ++i)
-				retval.append(delim + get(i));
-			return retval.toString();
-		}
+    public StringList(Object[] array) {
+        addAll(array);
+    }
 
-	}  // }}}
 
-	// {{{ main()
-	public static void main(String args[])
-	{
-		String teststr = "a,b,c,d,e,f";
-		StringList.split(teststr, ",");
-		//String joinstr = sl.join(",");
-		// assert(teststr.equals(joinstr));
-		System.out.println("Test Passed");
+    public void addAll(Object[] array) {
+        for (Object element : array)
+            add(element.toString());
+    }
 
-	}// }}}
-	private static final long serialVersionUID = -6408080298368668262L;
-} // }}}
+
+    /**
+     * @param orig  the original string
+     * @param delim a delimiter to use for splitting
+     * @return a new StringList containing the split strings.
+     */
+    public static StringList split(String orig, Object delim) {
+        if ((orig == null) || (orig.length() == 0))
+            return new StringList();
+        return new StringList(orig.split(delim.toString()));
+    }
+
+
+    /**
+     * Joins each string in the list with a newline.
+     *
+     * @return a joined string representation of this,
+     * with the newline (\n) as delimiter.
+     */
+    @Override
+    public String toString() {
+        return join("\n");
+    }
+
+
+    /**
+     * @return an array of String
+     */
+    @Override
+    public String[] toArray() {
+        int siz = size();
+        String[] result = new String[siz];
+        System.arraycopy(super.toArray(), 0, result, 0, siz);
+        return result;
+    }
+
+
+    /**
+     * The reverse of split - given a collection, takes each element
+     * and places it in a string, joined by a delimiter.
+     */
+    public static String join(Collection<String> c, String delim) {
+        StringList sl = new StringList();
+        for (String s : c)
+            sl.add(s);
+        return sl.join(delim);
+    }
+
+    /**
+     * @param arr   array of objects
+     * @param delim delimiter to separate strings
+     * @return a single string with each element in arr converted to a string and concatenated,
+     * separated by delim.
+     */
+    public static String join(Object[] arr, String delim) {
+        return new StringList(arr).join(delim);
+    }
+
+
+    /**
+     * Non-static version, that joins "this" StringList.
+     *
+     * @param delim the delimiter
+     * @return a joined string with delim inbetween each element
+     */
+    public String join(String delim) {
+        int s = size();
+        if (s < 1)
+            return "";
+        if (s == 1)
+            return get(0);
+        else {
+            StringBuilder retval = new StringBuilder();
+            retval.append(get(0));
+            for (int i = 1; i < s; ++i)
+                retval.append(delim + get(i));
+            return retval.toString();
+        }
+
+    }
+
+
+}
