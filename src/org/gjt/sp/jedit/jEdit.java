@@ -82,21 +82,66 @@ import org.gjt.sp.util.IOUtilities;
 import org.gjt.sp.util.SyntaxUtilities;
 
 
-/**
- * The main class of the jEdit text editor.
- *
- * @author Slava Pestov
- * @version $Id: jEdit.java 24593 2017-01-20 09:57:13Z vampire0 $
- */
+
 public class jEdit {
+
+
+    private static String jEditHome;
+    private static String settingsDirectory;
+    private static String jarCacheDirectory;
+    private static long propsModTime;
+    private static PropertyManager propMgr;
+    private static EditServer server;
+    private static boolean background;
+    private static ActionContext actionContext;
+    private static ActionSet builtInActionSet;
+    private static Vector<ErrorListDialog.ErrorEntry> pluginErrors;
+    private static final Object pluginErrorLock = new Object();
+    private static Vector<PluginJAR> jars;
+    private static final JEditPropertyManager propertyManager =
+            new JEditPropertyManager();
+    private static long startupTime = System.currentTimeMillis();
+
+    private static boolean saveCaret;
+    private static InputHandler inputHandler;
+    private static KeymapManager keymapManager;
+
+    private static BufferSetManager bufferSetManager;
+
+    // buffer link list
+    private static boolean sortBuffers;
+    private static boolean sortByName;
+    private static int bufferCount;
+    private static Buffer buffersFirst;
+    private static Buffer buffersLast;
+    private static Map<String, Buffer> bufferHash;
+
+    // makes openTemporary() thread-safe
+    private static final Object bufferListLock = new Object();
+
+    private static final Object editBusOrderingLock = new Object();
+
+    // view link list
+    private static int viewCount;
+    private static View viewsFirst;
+    private static View viewsLast;
+    private static View activeView;
+
+    private static final List<Boolean> startupDone = new Vector<Boolean>();
+    private static Vector<String> additionalFiles = new Vector<String>();
+
+    private static Thread mainThread;
+
+
+    private jEdit() {
+    }
 
     public static String getVersion() {
         return MiscUtilities.buildToVersion(getBuild());
-    } //}}}
+    }
 
 
     public static String getBuild() {
-        // (major).(minor).(<99 = preX, 99 = "final").(bug fix)
         return "05.04.99.00";
     }
 
@@ -551,16 +596,7 @@ public class jEdit {
         logTime("main done");
     } //}}}
 
-    //{{{ Property methods
 
-    //{{{ getCurrentLanguage() method
-
-    /**
-     * Returns the current language used by jEdit.
-     *
-     * @return the current language, never null
-     * @since jEdit 5.0pre1
-     */
     public static String getCurrentLanguage() {
         String language;
         if (getBooleanProperty("lang.usedefaultlocale")) {
@@ -569,66 +605,26 @@ public class jEdit {
             language = getProperty("lang.current", "en");
         }
         return language;
-    } //}}}
+    }
 
-    //{{{ getProperties() method
 
-    /**
-     * Returns the properties object which contains all known
-     * jEdit properties. Note that as of jEdit 4.2pre10, this returns a
-     * new collection, not the existing properties instance.
-     *
-     * @since jEdit 3.1pre4
-     */
     public static Properties getProperties() {
         return propMgr.getProperties();
-    } //}}}
+    }
 
-    //{{{ getProperty() method
 
-    /**
-     * Fetches a property, returning null if it's not defined.
-     *
-     * @param name The property
-     */
     public static String getProperty(String name) {
         return propMgr.getProperty(name);
-    } //}}}
+    }
 
-    //{{{ getProperty() method
-
-    /**
-     * Fetches a property, returning the default value if it's not
-     * defined.
-     *
-     * @param name The property
-     * @param def  The default value
-     */
     public static String getProperty(String name, String def) {
         String value = propMgr.getProperty(name);
         if (value == null)
             return def;
         else
             return value;
-    } //}}}
+    }
 
-    //{{{ getProperty() method
-
-    /**
-     * Returns the property with the specified name.<p>
-     * <p>
-     * The elements of the <code>args</code> array are substituted
-     * into the value of the property in place of strings of the
-     * form <code>{<i>n</i>}</code>, where <code><i>n</i></code> is an index
-     * in the array.<p>
-     * <p>
-     * You can find out more about this feature by reading the
-     * documentation for the <code>format</code> method of the
-     * <code>java.text.MessageFormat</code> class.
-     *
-     * @param name The property
-     * @param args The positional parameters
-     */
     public static String getProperty(String name, Object[] args) {
         if (name == null)
             return null;
@@ -641,15 +637,8 @@ public class jEdit {
             else
                 return MessageFormat.format(value, args);
         }
-    } //}}}
+    }
 
-    //{{{ getBooleanProperty() method
-
-    /**
-     * Returns the value of a boolean property.
-     *
-     * @param name The property
-     */
     public static boolean getBooleanProperty(String name) {
         return getBooleanProperty(name, false);
     } //}}}
@@ -3060,58 +3049,8 @@ public class jEdit {
 
     //}}}
 
-    //{{{ Private members
 
-    //{{{ Static variables
-    private static String jEditHome;
-    private static String settingsDirectory;
-    private static String jarCacheDirectory;
-    private static long propsModTime;
-    private static PropertyManager propMgr;
-    private static EditServer server;
-    private static boolean background;
-    private static ActionContext actionContext;
-    private static ActionSet builtInActionSet;
-    private static Vector<ErrorListDialog.ErrorEntry> pluginErrors;
-    private static final Object pluginErrorLock = new Object();
-    private static Vector<PluginJAR> jars;
-    private static final JEditPropertyManager propertyManager =
-            new JEditPropertyManager();
-    private static long startupTime = System.currentTimeMillis();
 
-    private static boolean saveCaret;
-    private static InputHandler inputHandler;
-    private static KeymapManager keymapManager;
-
-    private static BufferSetManager bufferSetManager;
-
-    // buffer link list
-    private static boolean sortBuffers;
-    private static boolean sortByName;
-    private static int bufferCount;
-    private static Buffer buffersFirst;
-    private static Buffer buffersLast;
-    private static Map<String, Buffer> bufferHash;
-
-    // makes openTemporary() thread-safe
-    private static final Object bufferListLock = new Object();
-
-    private static final Object editBusOrderingLock = new Object();
-
-    // view link list
-    private static int viewCount;
-    private static View viewsFirst;
-    private static View viewsLast;
-    private static View activeView;
-
-    private static final List<Boolean> startupDone = new Vector<Boolean>();
-    private static Vector<String> additionalFiles = new Vector<String>();
-
-    private static Thread mainThread;
-    //}}}
-
-    private jEdit() {
-    }
 
     //{{{ usage() method
     private static void usage() {

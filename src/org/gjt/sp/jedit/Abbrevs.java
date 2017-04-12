@@ -22,13 +22,13 @@
 
 package org.gjt.sp.jedit;
 
-//{{{ Imports
+
 import java.io.*;
 import java.util.*;
 import org.gjt.sp.jedit.gui.AddAbbrevDialog;
 import org.gjt.sp.jedit.textarea.*;
 import org.gjt.sp.util.Log;
-//}}}
+
 
 /**
  * Abbreviation manager.
